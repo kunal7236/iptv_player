@@ -215,293 +215,337 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _hideControlsAfterDelay();
   }
 
+  void _goBack() {
+    // Reset system settings before going back
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: _isInitialized
-          ? GestureDetector(
-              onTap: _toggleControls,
-              child: Stack(
-                children: [
-                  // Video Player
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: _aspectRatio,
-                      child: FittedBox(
-                        fit: _videoFit,
-                        child: SizedBox(
-                          width: _controller.value.size.width,
-                          height: _controller.value.size.height,
-                          child: VideoPlayer(_controller),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          // Reset system settings when popping
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: _isInitialized
+            ? GestureDetector(
+                onTap: _toggleControls,
+                behavior: HitTestBehavior.translucent,
+                child: Stack(
+                  children: [
+                    // Video Player
+                    Center(
+                      child: AspectRatio(
+                        aspectRatio: _aspectRatio,
+                        child: FittedBox(
+                          fit: _videoFit,
+                          child: SizedBox(
+                            width: _controller.value.size.width,
+                            height: _controller.value.size.height,
+                            child: VideoPlayer(_controller),
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  // Controls Overlay
-                  if (_showControls && !_isScreenLocked)
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.7),
-                            Colors.transparent,
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.7),
-                          ],
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          // Top Controls
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.arrow_back,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    widget.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                // Aspect Ratio Button
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.aspect_ratio,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _changeAspectRatio,
-                                  tooltip: 'Change Aspect Ratio',
-                                ),
-                                // Fit to Screen Button
-                                IconButton(
-                                  icon: Icon(
-                                    _videoFit == BoxFit.contain
-                                        ? Icons.fit_screen
-                                        : Icons.fullscreen,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _toggleVideoFit,
-                                  tooltip: 'Toggle Video Fit',
-                                ),
-                                // Fullscreen Button
-                                IconButton(
-                                  icon: Icon(
-                                    _isFullScreen
-                                        ? Icons.fullscreen_exit
-                                        : Icons.fullscreen,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _toggleFullScreen,
-                                  tooltip: 'Toggle Fullscreen',
-                                ),
-                              ],
-                            ),
+                    // Controls Overlay
+                    if (_showControls && !_isScreenLocked)
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.7),
+                              Colors.transparent,
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.7),
+                            ],
                           ),
-
-                          // Center Play/Pause Button
-                          Expanded(
-                            child: Center(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  iconSize: 64,
-                                  icon: Icon(
-                                    _controller.value.isPlaying
-                                        ? Icons.pause
-                                        : Icons.play_arrow,
-                                    color: Colors.white,
+                        ),
+                        child: Column(
+                          children: [
+                            // Top Controls
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: _goBack,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Icon(
+                                        Icons.arrow_back,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
                                   ),
-                                  onPressed: _togglePlayPause,
+                                  Expanded(
+                                    child: Text(
+                                      widget.title,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  // Aspect Ratio Button
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.aspect_ratio,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _changeAspectRatio,
+                                    tooltip: 'Change Aspect Ratio',
+                                  ),
+                                  // Fit to Screen Button
+                                  IconButton(
+                                    icon: Icon(
+                                      _videoFit == BoxFit.contain
+                                          ? Icons.fit_screen
+                                          : Icons.fullscreen,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _toggleVideoFit,
+                                    tooltip: 'Toggle Video Fit',
+                                  ),
+                                  // Fullscreen Button
+                                  IconButton(
+                                    icon: Icon(
+                                      _isFullScreen
+                                          ? Icons.fullscreen_exit
+                                          : Icons.fullscreen,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _toggleFullScreen,
+                                    tooltip: 'Toggle Fullscreen',
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Center Play/Pause Button
+                            Expanded(
+                              child: Center(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    iconSize: 64,
+                                    icon: Icon(
+                                      _controller.value.isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _togglePlayPause,
+                                  ),
                                 ),
                               ),
                             ),
+
+                            // Bottom Controls
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  // Screen Lock Button
+                                  IconButton(
+                                    icon: Icon(
+                                      _isScreenLocked
+                                          ? Icons.lock
+                                          : Icons.lock_open,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _toggleScreenLock,
+                                    tooltip: 'Toggle Screen Lock',
+                                  ),
+
+                                  // Rotate Screen Button
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.screen_rotation,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _rotateScreen,
+                                    tooltip: 'Rotate Screen',
+                                  ),
+
+                                  const Spacer(),
+
+                                  // Current Aspect Ratio Indicator
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      _aspectRatios[_currentAspectRatioIndex]['name'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Screen Lock Indicator
+                    if (_isScreenLocked && !_showUnlockButton)
+                      Positioned(
+                        top: 50,
+                        right: 20,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-
-                          // Bottom Controls
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                // Screen Lock Button
-                                IconButton(
-                                  icon: Icon(
-                                    _isScreenLocked
-                                        ? Icons.lock
-                                        : Icons.lock_open,
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.lock,
                                     color: Colors.white,
+                                    size: 16,
                                   ),
-                                  onPressed: _toggleScreenLock,
-                                  tooltip: 'Toggle Screen Lock',
-                                ),
-
-                                // Rotate Screen Button
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.screen_rotation,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _rotateScreen,
-                                  tooltip: 'Rotate Screen',
-                                ),
-
-                                const Spacer(),
-
-                                // Current Aspect Ratio Indicator
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.7),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    _aspectRatios[_currentAspectRatioIndex]['name'],
-                                    style: const TextStyle(
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Screen Locked',
+                                    style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // Screen Lock Indicator
-                  if (_isScreenLocked && !_showUnlockButton)
-                    Positioned(
-                      top: 50,
-                      right: 20,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.lock, color: Colors.white, size: 16),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Screen Locked',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Tap screen to unlock',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 10,
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // Unlock Button Overlay
-                  if (_isScreenLocked && _showUnlockButton)
-                    Container(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.lock_open,
-                                color: Colors.white,
-                                size: 48,
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Screen is Locked',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Tap unlock to continue',
+                              SizedBox(height: 4),
+                              Text(
+                                'Tap screen to unlock',
                                 style: TextStyle(
                                   color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              ElevatedButton.icon(
-                                onPressed: _unlockScreen,
-                                icon: const Icon(Icons.lock_open),
-                                label: const Text('Unlock'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                    vertical: 12,
-                                  ),
+                                  fontSize: 10,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
+
+                    // Unlock Button Overlay
+                    if (_isScreenLocked && _showUnlockButton)
+                      Container(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.lock_open,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Screen is Locked',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Tap unlock to continue',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: _unlockScreen,
+                                  icon: const Icon(Icons.lock_open),
+                                  label: const Text('Unlock'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              )
+            : const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading video...',
+                      style: TextStyle(color: Colors.white),
                     ),
-                ],
+                  ],
+                ),
               ),
-            )
-          : const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text(
-                    'Loading video...',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
+      ),
     );
   }
 }
