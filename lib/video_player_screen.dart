@@ -22,6 +22,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _showControls = true;
   bool _isFullScreen = false;
   bool _isScreenLocked = false;
+  bool _showUnlockButton = false;
   double _aspectRatio = 16 / 9; // Default aspect ratio
   BoxFit _videoFit = BoxFit.contain;
 
@@ -69,23 +70,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   void _hideControlsAfterDelay() {
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted && !_isScreenLocked) {
+      if (mounted) {
         setState(() {
           _showControls = false;
+          _showUnlockButton = false;
         });
       }
     });
   }
 
   void _toggleControls() {
-    if (!_isScreenLocked) {
-      setState(() {
+    setState(() {
+      if (_isScreenLocked) {
+        // When screen is locked, toggle unlock button visibility
+        _showUnlockButton = !_showUnlockButton;
+        if (_showUnlockButton) {
+          _hideControlsAfterDelay();
+        }
+      } else {
+        // Normal behavior when not locked
         _showControls = !_showControls;
-      });
-      if (_showControls) {
-        _hideControlsAfterDelay();
+        if (_showControls) {
+          _hideControlsAfterDelay();
+        }
       }
-    }
+    });
   }
 
   void _togglePlayPause() {
@@ -171,6 +180,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void _toggleScreenLock() {
     setState(() {
       _isScreenLocked = !_isScreenLocked;
+      if (_isScreenLocked) {
+        _showControls = false;
+        _showUnlockButton = false; // Start with unlock button hidden
+      } else {
+        _showControls = true;
+        _showUnlockButton = false;
+        _hideControlsAfterDelay();
+      }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -179,6 +196,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         duration: const Duration(seconds: 1),
       ),
     );
+  }
+
+  void _unlockScreen() {
+    setState(() {
+      _isScreenLocked = false;
+      _showUnlockButton = false;
+      _showControls = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Screen Unlocked'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    _hideControlsAfterDelay();
   }
 
   @override
@@ -265,6 +299,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                   onPressed: _toggleVideoFit,
                                   tooltip: 'Toggle Video Fit',
                                 ),
+                                // Fullscreen Button
+                                IconButton(
+                                  icon: Icon(
+                                    _isFullScreen
+                                        ? Icons.fullscreen_exit
+                                        : Icons.fullscreen,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: _toggleFullScreen,
+                                  tooltip: 'Toggle Fullscreen',
+                                ),
                               ],
                             ),
                           ),
@@ -338,20 +383,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                     ),
                                   ),
                                 ),
-
-                                const SizedBox(width: 8),
-
-                                // Fullscreen Button
-                                IconButton(
-                                  icon: Icon(
-                                    _isFullScreen
-                                        ? Icons.fullscreen_exit
-                                        : Icons.fullscreen,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _toggleFullScreen,
-                                  tooltip: 'Toggle Fullscreen',
-                                ),
                               ],
                             ),
                           ),
@@ -360,7 +391,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     ),
 
                   // Screen Lock Indicator
-                  if (_isScreenLocked)
+                  if (_isScreenLocked && !_showUnlockButton)
                     Positioned(
                       top: 50,
                       right: 20,
@@ -370,19 +401,88 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                           color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Row(
+                        child: const Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.lock, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.lock, color: Colors.white, size: 16),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Screen Locked',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 4),
                             Text(
-                              'Screen Locked',
+                              'Tap screen to unlock',
                               style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
+                                color: Colors.white70,
+                                fontSize: 10,
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+
+                  // Unlock Button Overlay
+                  if (_isScreenLocked && _showUnlockButton)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.lock_open,
+                                color: Colors.white,
+                                size: 48,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Screen is Locked',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Tap unlock to continue',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ElevatedButton.icon(
+                                onPressed: _unlockScreen,
+                                icon: const Icon(Icons.lock_open),
+                                label: const Text('Unlock'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
