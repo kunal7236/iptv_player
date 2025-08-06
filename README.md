@@ -88,7 +88,7 @@ assets/
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/iptv_player.git
+   git clone https://github.com/kunal7236/iptv_player.git
    cd iptv_player
    ```
 
@@ -178,7 +178,7 @@ We welcome contributions! Here's how you can help:
 1. **Fork & Branch**
 
    ```bash
-   git fork https://github.com/yourusername/iptv_player.git
+   git fork https://github.com/kunal7236/iptv_player.git
    git checkout -b feature/your-feature-name
    ```
 
@@ -225,7 +225,7 @@ Want to contribute? Here are some feature ideas:
 ### Getting Help
 
 - **Documentation**: Check this README and code comments
-- **Issues**: [GitHub Issues](https://github.com/kunal7236e/iptv_player/issues)
+- **Issues**: [GitHub Issues](https://github.com/kunal7236/iptv_player/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/kunal7236/iptv_player/discussions)
 
 ### Troubleshooting
