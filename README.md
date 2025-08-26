@@ -4,7 +4,7 @@ A modern, feature-rich IPTV streaming application built with Flutter. Stream liv
 
 ## 🎥 Demo
 
-Watch the app in action: **[Demo Video](https://drive.google.com/file/d/10zAdbpsQstCAltDd2CGakzxHbuGZRk2m/view?usp=sharing)**
+Watch the app in action: **[Demo Video](https://youtube.com/shorts/LNQ2E4kYZsk?feature=share)**
 
 ## ✨ Features
 
