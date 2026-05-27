@@ -66,12 +66,11 @@ Watch the app in action: **[Demo Video](https://youtube.com/shorts/LNQ2E4kYZsk?f
 lib/
 ├── main.dart                 # App entry point
 ├── splash_screen.dart        # Animated splash screen
+├── iptv_repository.dart      # API fetch + in-memory filtering
 ├── channel_list_screen.dart  # Channel list with search
 ├── video_player_screen.dart  # Advanced video player
 └── model/
     └── json_conversion_model.dart # Data models
-assets/
-└── hindi_india_streams.json  # Channel data source
 ```
 
 ## 🚀 Getting Started
@@ -123,20 +122,14 @@ assets/
 
 #### Channel Data
 
-Update the channel data in `assets/hindi_india_streams.json`:
+Channel data is fetched from the IPTV-Org API on app startup and cached in memory.
+The app reads the live data from:
 
-```json
-[
-  {
-    "channel": "Channel.Name",
-    "title": "Display Name",
-    "url": "https://stream-url.m3u8",
-    "quality": "720p",
-    "user_agent": null,
-    "referrer": null
-  }
-]
-```
+- `https://iptv-org.github.io/api/channels.json`
+- `https://iptv-org.github.io/api/feeds.json`
+- `https://iptv-org.github.io/api/streams.json`
+
+If you want to change the filters, update the repository logic in `lib/iptv_repository.dart`.
 
 #### App Settings
 

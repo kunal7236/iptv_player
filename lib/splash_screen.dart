@@ -1,10 +1,7 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'iptv_repository.dart';
+import 'model/channel_catalog_model.dart';
 import 'channel_list_screen.dart';
-import 'model/json_conversion_model.dart' as model;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,6 +12,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  final IptvRepository _repository = IptvRepository();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -31,9 +29,8 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(_animationController);
 
     _animationController.forward();
-
-    Timer(Duration(seconds: 3), () {
-      _navigateToChannelList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
     });
   }
 
@@ -43,24 +40,16 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _navigateToChannelList() async {
+  Future<void> _initializeApp() async {
     try {
-      // Load JSON data from assets
-      final String response = await rootBundle.loadString(
-        'assets/hindi_india_streams.json',
-      );
-      final List<dynamic> data = json.decode(response);
+      await _repository.fetchAllData();
 
-      // Convert JSON to Stream objects
-      final List<model.Stream> channels = data
-          .map((json) => model.Stream.fromJson(json))
-          .toList();
+      final ChannelCatalog catalog = await _repository.fetchCatalog();
 
-      // Navigate to channel list
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => ChannelListScreen(channels: channels),
+            builder: (context) => ChannelListScreen(catalog: catalog),
           ),
         );
       }
@@ -70,12 +59,12 @@ class _SplashScreenState extends State<SplashScreen>
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Error'),
-            content: Text('Failed to load channels: $e'),
+            title: const Text('Error'),
+            content: Text('Failed to load IPTV data: $e'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           ),
